@@ -10,7 +10,13 @@ export class RpcsService {
     private readonly rpcRepository: Repository<Rpc>,
   ) {}
 
-  public async getrpcs(): Promise<Rpc[]> {
+  public async getRpcs(): Promise<Rpc[]> {
     return this.rpcRepository.find();
+  }
+
+  public async addRpc(rpc: Partial<Rpc>): Promise<Rpc> {
+    const newRpc = this.rpcRepository.create(rpc);
+    await this.rpcRepository.save(newRpc);
+    return newRpc;
   }
 }

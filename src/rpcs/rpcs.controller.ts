@@ -8,7 +8,7 @@ export class RpcsController {
 
   @Get()
   public async getRpcs(): Promise<Rpc[]> {
-    const result = await this.rpcsService.getrpcs();
+    const result = await this.rpcsService.getRpcs();
 
     return result;
   }

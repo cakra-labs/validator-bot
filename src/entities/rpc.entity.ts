@@ -6,7 +6,7 @@ export class Rpc {
   id: number;
 
   @Column()
-  telegramChatId: string;
+  telegramChatId: number;
 
   @Column()
   url: string;
