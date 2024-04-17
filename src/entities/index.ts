@@ -1,1 +1,1 @@
-export * from './rpc.entity'
+export * from './rpc.entity';
