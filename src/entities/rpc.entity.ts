@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
 
 @Entity()
+@Unique(['telegramChatId', 'url'])
 export class Rpc {
   @PrimaryGeneratedColumn()
   id: number;

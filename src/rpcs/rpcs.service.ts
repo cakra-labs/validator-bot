@@ -27,4 +27,14 @@ export class RpcsService {
       },
     });
   }
+
+  public async removeRpc(telegramChatId: number, url: string): Promise<Rpc[]> {
+    const rpcs = await this.rpcRepository.find({
+      where: {
+        telegramChatId,
+        url,
+      },
+    });
+    return this.rpcRepository.remove(rpcs);
+  }
 }

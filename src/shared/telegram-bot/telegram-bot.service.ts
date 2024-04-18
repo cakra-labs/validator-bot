@@ -38,6 +38,14 @@ export class TelegramBotService {
         this.logger.error(err);
       }
     });
+
+    this.bot.onText(/\/removerpc (.+)/, async (msg, match) => {
+      try {
+        await this.removeRpc(msg, match);
+      } catch (err) {
+        this.logger.error(err);
+      }
+    });
   }
 
   private echo(msg: TelegramBot.Message, match: RegExpExecArray) {
@@ -78,5 +86,18 @@ export class TelegramBotService {
     }
 
     await this.bot.sendMessage(chatId, resp);
+  }
+
+  private async removeRpc(
+    msg: TelegramBot.Message,
+    match: RegExpExecArray,
+  ): Promise<void> {
+    const chatId = msg.chat.id;
+    const resp = match[1];
+
+    const rpcs = await this.rpcsService.removeRpc(chatId, resp);
+    if (rpcs.length) {
+      await this.bot.sendMessage(chatId, 'Successfully removed RPC');
+    }
   }
 }
