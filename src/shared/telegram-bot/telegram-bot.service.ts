@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as TelegramBot from 'node-telegram-bot-api';
 import { RpcsService } from 'src/rpcs/rpcs.service';
@@ -6,6 +6,7 @@ import { RpcsService } from 'src/rpcs/rpcs.service';
 @Injectable()
 export class TelegramBotService {
   private bot: TelegramBot;
+  private readonly logger = new Logger(TelegramBotService.name);
 
   constructor(
     private configService: ConfigService,
@@ -22,8 +23,20 @@ export class TelegramBotService {
       this.echo(msg, match);
     });
 
-    this.bot.onText(/\/setrpc (.+)/, (msg, match) => {
-      this.setRpc(msg, match);
+    this.bot.onText(/\/setrpc (.+)/, async (msg, match) => {
+      try {
+        await this.setRpc(msg, match);
+      } catch (err) {
+        this.logger.error(err);
+      }
+    });
+
+    this.bot.onText(/\/listrpcs/, async (msg) => {
+      try {
+        await this.getListRpcs(msg);
+      } catch (err) {
+        this.logger.error(err);
+      }
     });
   }
 
@@ -35,13 +48,35 @@ export class TelegramBotService {
     this.bot.sendMessage(chatId, resp);
   }
 
-  private setRpc(msg: TelegramBot.Message, match: RegExpExecArray) {
+  private async setRpc(
+    msg: TelegramBot.Message,
+    match: RegExpExecArray,
+  ): Promise<void> {
     const chatId = msg.chat.id;
     const resp = match[1];
 
-    this.rpcsService.addRpc({
+    await this.rpcsService.addRpc({
       telegramChatId: chatId,
       url: resp,
     });
+
+    await this.bot.sendMessage(chatId, 'Successfully added RPC');
+  }
+
+  private async getListRpcs(msg: TelegramBot.Message): Promise<void> {
+    const chatId = msg.chat.id;
+    const rpcs = await this.rpcsService.getRpcByTelegramChatId(chatId);
+
+    if (!rpcs.length) {
+      await this.bot.sendMessage(chatId, 'No RPC registered');
+      return;
+    }
+
+    let resp = 'List registered RPCs:';
+    for (const rpc of rpcs) {
+      resp = resp + '\u000a' + '- ' + rpc.url;
+    }
+
+    await this.bot.sendMessage(chatId, resp);
   }
 }

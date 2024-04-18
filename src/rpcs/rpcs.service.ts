@@ -19,4 +19,12 @@ export class RpcsService {
     await this.rpcRepository.save(newRpc);
     return newRpc;
   }
+
+  public async getRpcByTelegramChatId(telegramChatId: number): Promise<Rpc[]> {
+    return this.rpcRepository.find({
+      where: {
+        telegramChatId,
+      },
+    });
+  }
 }
