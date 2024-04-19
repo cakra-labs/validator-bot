@@ -2,6 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as TelegramBot from 'node-telegram-bot-api';
 import { RpcsService } from 'src/rpcs/rpcs.service';
+import * as dayjs from 'dayjs';
+
+import * as relativeTime from 'dayjs/plugin/relativeTime';
+dayjs.extend(relativeTime);
+
+const DATE_FORMAT = 'MMMM D, YYYY h:mm A';
 
 @Injectable()
 export class TelegramBotService {
@@ -42,6 +48,14 @@ export class TelegramBotService {
     this.bot.onText(/\/removerpc (.+)/, async (msg, match) => {
       try {
         await this.removeRpc(msg, match);
+      } catch (err) {
+        this.logger.error(err);
+      }
+    });
+
+    this.bot.onText(/\/status/, async (msg) => {
+      try {
+        await this.getStatus(msg);
       } catch (err) {
         this.logger.error(err);
       }
@@ -99,5 +113,29 @@ export class TelegramBotService {
     if (rpcs.length) {
       await this.bot.sendMessage(chatId, 'Successfully removed RPC');
     }
+  }
+
+  private async getStatus(msg: TelegramBot.Message): Promise<void> {
+    const chatId = msg.chat.id;
+    const statuses = await this.rpcsService.getStatuses(chatId);
+
+    if (!statuses.length) {
+      await this.bot.sendMessage(chatId, 'None');
+      return;
+    }
+
+    let resp = 'Status:';
+    for (const status of statuses) {
+      const blockTime = dayjs(status.result.sync_info.latest_block_time);
+      resp =
+        resp +
+        `
+${status.result.node_info.network} - ${status.result.node_info.moniker}
+Latest block time ${blockTime.format(DATE_FORMAT)}
+${dayjs().diff(blockTime, 'minute') >= 10 ? 'Not synced' : 'Synced'} -  ${blockTime.fromNow()}
+      `;
+    }
+
+    await this.bot.sendMessage(chatId, resp);
   }
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Rpc } from '../entities';
 import { Repository } from 'typeorm';
+import { StatusResponse } from './interfaces/status.interface';
 
 @Injectable()
 export class RpcsService {
@@ -36,5 +37,16 @@ export class RpcsService {
       },
     });
     return this.rpcRepository.remove(rpcs);
+  }
+
+  public async getStatuses(telegramChatId: number): Promise<StatusResponse[]> {
+    const rpcs = await this.getRpcByTelegramChatId(telegramChatId);
+    const requests = rpcs.map(async (rpc) => {
+      const resp = await fetch(rpc.url + '/status');
+      const result: StatusResponse = await resp.json();
+      return result;
+    });
+
+    return Promise.all(requests);
   }
 }
