@@ -49,4 +49,14 @@ export class RpcsService {
 
     return Promise.all(requests);
   }
+
+  public async getChatIds(): Promise<number[]> {
+    const result = await this.rpcRepository
+      .createQueryBuilder('rpc')
+      .select('rpc.telegramChatId', 'chatId')
+      .distinct(true)
+      .getRawMany();
+
+    return result.map((item) => item.chatId);
+  }
 }

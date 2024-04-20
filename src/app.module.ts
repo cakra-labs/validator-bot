@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SharedModule } from './shared/shared.module';
 import { configuration } from './config';
 import { RpcsModule } from './rpcs/rpcs.module';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { Rpc } from './entities';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -23,9 +25,13 @@ import { Rpc } from './entities';
       logging: true,
     }),
 
+    ScheduleModule.forRoot(),
+
     SharedModule,
 
     RpcsModule,
+
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

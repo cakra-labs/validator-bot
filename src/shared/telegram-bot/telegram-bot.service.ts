@@ -55,7 +55,7 @@ export class TelegramBotService {
 
     this.bot.onText(/\/status/, async (msg) => {
       try {
-        await this.getStatus(msg);
+        await this.getStatus(msg.chat.id);
       } catch (err) {
         this.logger.error(err);
       }
@@ -115,8 +115,7 @@ export class TelegramBotService {
     }
   }
 
-  private async getStatus(msg: TelegramBot.Message): Promise<void> {
-    const chatId = msg.chat.id;
+  public async getStatus(chatId: number): Promise<void> {
     const statuses = await this.rpcsService.getStatuses(chatId);
 
     if (!statuses.length) {
@@ -137,5 +136,12 @@ ${dayjs().diff(blockTime, 'minute') >= 10 ? 'Not synced' : 'Synced'} -  ${blockT
     }
 
     await this.bot.sendMessage(chatId, resp);
+  }
+
+  public async sendMessage(
+    chatId: number,
+    text: string,
+  ): Promise<TelegramBot.Message> {
+    return this.bot.sendMessage(chatId, text);
   }
 }
